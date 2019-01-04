@@ -36,6 +36,7 @@ const FileRow = (props) => (
     <tr>
         <td>{props.file.path}</td>
         <td>{props.file.name}</td>
+        <td>{props.file.type}</td>
     </tr>
 );
 
@@ -50,6 +51,7 @@ const FileTable = (props) => {
                 <tr>
                     <th>Path</th>
                     <th>Name</th>
+                    <th>Type</th>
                 </tr>
             </thead>
             <tbody>{fileRows}</tbody>
@@ -95,9 +97,10 @@ class FileOrganizer extends React.Component {
     }
 
     loadData() {
-        fetch('/api/files').then(response =>
+        fetch('/api/path').then(response =>
             response.json()
         ).then(data => {
+            console.log('loading data');
             this.setState({ files: data.records });
         }).catch(err => {
             console.log(err);
@@ -112,9 +115,9 @@ class FileOrganizer extends React.Component {
             body: JSON.stringify(newPath),
         }).then(response => {
             if (response.ok) {
-                response.json().then(updatedPath => {
-                    this.setState({ path: updatedPath.path });
-                    // console.log(this.state.path);
+                response.json().then(newFiles => {
+                    this.setState({ path: newPath.path });
+                    this.setState({ files: newFiles });
                 })
             } else {
                 response.json().then(error => {
@@ -132,6 +135,7 @@ class FileOrganizer extends React.Component {
                 <hr/>
                 <FilePath setPath={this.setPath}/>
                 <hr/>
+                <p>Directory content for <b>{this.state.path}</b></p>
                 <FileTable files={this.state.files}/>
                 <hr/>
                 {/* <FileSort /> */}

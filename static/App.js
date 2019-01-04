@@ -89,6 +89,11 @@ var FileRow = function FileRow(props) {
             "td",
             null,
             props.file.name
+        ),
+        React.createElement(
+            "td",
+            null,
+            props.file.type
         )
     );
 };
@@ -117,6 +122,11 @@ var FileTable = function FileTable(props) {
                     "th",
                     null,
                     "Name"
+                ),
+                React.createElement(
+                    "th",
+                    null,
+                    "Type"
                 )
             )
         ),
@@ -197,9 +207,10 @@ var FileOrganizer = function (_React$Component4) {
         value: function loadData() {
             var _this5 = this;
 
-            fetch('/api/files').then(function (response) {
+            fetch('/api/path').then(function (response) {
                 return response.json();
             }).then(function (data) {
+                console.log('loading data');
                 _this5.setState({ files: data.records });
             }).catch(function (err) {
                 console.log(err);
@@ -217,9 +228,9 @@ var FileOrganizer = function (_React$Component4) {
                 body: JSON.stringify(newPath)
             }).then(function (response) {
                 if (response.ok) {
-                    response.json().then(function (updatedPath) {
-                        _this6.setState({ path: updatedPath.path });
-                        // console.log(this.state.path);
+                    response.json().then(function (newFiles) {
+                        _this6.setState({ path: newPath.path });
+                        _this6.setState({ files: newFiles });
                     });
                 } else {
                     response.json().then(function (error) {
@@ -239,6 +250,16 @@ var FileOrganizer = function (_React$Component4) {
                 React.createElement("hr", null),
                 React.createElement(FilePath, { setPath: this.setPath }),
                 React.createElement("hr", null),
+                React.createElement(
+                    "p",
+                    null,
+                    "Directory content for ",
+                    React.createElement(
+                        "b",
+                        null,
+                        this.state.path
+                    )
+                ),
                 React.createElement(FileTable, { files: this.state.files }),
                 React.createElement("hr", null)
             );
