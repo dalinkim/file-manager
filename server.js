@@ -1,47 +1,80 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fs = require('fs');
+// const fs = require('fs');
 const path = require('path');
+const { promisify } = require('util');
+const readdir = promisify(require('fs').readdir);
+const stat = promisify(require('fs').stat);
 
 const app = express();
 app.use(express.static('static'));
 app.use(bodyParser.json());
 
-var pathName = '';
-const pathContent = [];
+var pathName = './';
 
-app.get('/api/path', (req, res) => {
-    const metadata = { total_count: pathContent.length };
-    res.json({ _metadata: metadata, records: pathContent });
+app.get('/api/files', (req, res) => {
+    // const metadata = { total_count: pathContent.length };
+    // res.json({ _metadata: metadata, records: pathContent });
+    getPathContent(pathName).then((pathContent) => {
+        const metadata = { total_count: pathContent.length };
+        res.json({ _metadata: metadata, records: pathContent });
+      }, (err) => {
+        res.status(422).json({
+          message: `${err}`
+        });
+      })
 });
 
-app.post('/api/path', (req, res) => {
+app.post('/api/files', (req, res) => {
     const newPath = req.body.path;
-
-    // ./files
-    fs.readdir(newPath, (err, files) => {
-        if (err) {
-            res.status(422).json({ message: `\nPath "${newPath}" could not be opened with the following error:\n${err}` });
-            return;
-        }
-        pathContent.length = 0;
-        let absPath = path.resolve(newPath);
-        console.log(absPath);
-        files.forEach(file => {
-            pathContent.push({
-                path: newPath,
-                name: file.lastIndexOf('.') >= 0 ? file.substring(0, file.lastIndexOf('.')) : file,
-                type: file.lastIndexOf('.') >= 0 ? file.substring(file.lastIndexOf('.') + 1).concat('File') : 'Directory',
-            })
-        });
-
-        // set the path name
-        pathName = newPath;
-        console.log(pathName);
-        res.json(pathContent);
-    });    
+    getPathContent(newPath).then((pathContent) => {
+      res.json(pathContent);
+    }, (err) => {
+      res.status(422).json({
+        message: `${err}`
+      });
+    })
 });
 
 app.listen(3000, function () {
     console.log('App started on port 3000');
 });
+
+async function getPathContent(newPath) {
+    const pathContent = [];
+
+    let files = await readdir(newPath)
+  
+    let pathName = newPath;
+    pathContent.length = 0;
+  
+    const absPath = path.resolve(pathName);
+  
+    // iterate each file
+    for (let file of files) {
+      // get file info and store in pathContent
+      try {
+        let fileStat = await stat(absPath + '/' + file)
+        if (fileStat.isFile()) {
+          pathContent.push({
+            path: pathName,
+            fullName: file,
+            name: file.substring(0, file.lastIndexOf('.')),
+            type: file.substring(file.lastIndexOf('.') + 1).concat(' File'),
+            size: fileStat.size,
+          })
+        } else if (fileStat.isDirectory()) {
+          pathContent.push({
+            path: pathName,
+            fullName: file,
+            name: file,
+            type: 'Directory',
+            size: fileStat.size,
+          });
+        }
+      } catch (err) {
+        console.log(`${err}`);
+      }
+    }
+    return pathContent;
+  }

@@ -37,6 +37,7 @@ const FileRow = (props) => (
         <td>{props.file.path}</td>
         <td>{props.file.name}</td>
         <td>{props.file.type}</td>
+        <td>{props.file.size}</td>
     </tr>
 );
 
@@ -44,18 +45,24 @@ const FileRow = (props) => (
 // stateless component rewritten as a function rather than a class
 const FileTable = (props) => {
     const fileRows = props.files.map(file =>
-        <FileRow key={file.name} file={file} />);
+        <FileRow key={file.fullName} file={file} />);
     return (
-        <table className="bordered-table">
-            <thead>
-                <tr>
-                    <th>Path</th>
-                    <th>Name</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody>{fileRows}</tbody>
-        </table>
+        <div>
+            <p>
+                <b>Contents Display: </b>Files in {props.path}
+            </p>
+            <table className="bordered-table">
+                <thead>
+                    <tr>
+                        <th>Path</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody>{fileRows}</tbody>
+            </table>
+        </div>
     );
 }
 
@@ -76,6 +83,11 @@ class FilePath extends React.Component {
     render() {
         return (
             <div>
+                <p>
+                    <b>Directory Lookup: </b><br></br>
+                    Enter an absolute or a relative directory path to display all files.<br></br>
+                    By default your current working directory is displayed.
+                </p>
                 <form name="pathSet" onSubmit={this.handleSubmit}>
                     <input type="text" name="url" placeholder="Enter url"/>
                     <button>Submit</button>
@@ -88,7 +100,7 @@ class FilePath extends React.Component {
 class FileOrganizer extends React.Component {
     constructor() {
         super();
-        this.state = { files: [], keyword: '', path: '' };
+        this.state = { files: [], keyword: '', path: './' };
         this.setPath = this.setPath.bind(this);
     }
 
@@ -97,7 +109,7 @@ class FileOrganizer extends React.Component {
     }
 
     loadData() {
-        fetch('/api/path').then(response =>
+        fetch('/api/files').then(response =>
             response.json()
         ).then(data => {
             console.log('loading data');
@@ -109,7 +121,7 @@ class FileOrganizer extends React.Component {
     
     setPath(newPath) {
         // console.log(newPath);
-        fetch('/api/path', {
+        fetch('/api/files', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newPath),
@@ -121,7 +133,7 @@ class FileOrganizer extends React.Component {
                 })
             } else {
                 response.json().then(error => {
-                    alert("Failed to set path: " + error.message)
+                    alert("Failed to set path: \n" + error.message)
                 });
             }
         }).catch(err => {
@@ -135,8 +147,7 @@ class FileOrganizer extends React.Component {
                 <hr/>
                 <FilePath setPath={this.setPath}/>
                 <hr/>
-                <p>Directory content for <b>{this.state.path}</b></p>
-                <FileTable files={this.state.files}/>
+                <FileTable files={this.state.files} path={this.state.path}/>
                 <hr/>
                 {/* <FileSort /> */}
             </div>
