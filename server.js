@@ -10,15 +10,38 @@ const app = express();
 app.use(express.static('static'));
 app.use(bodyParser.json());
 
-var _pathName = './';
+var _pathName = './files';
 var _keyword = '';
 
+function setPath(pathName) {
+  if (!fs.existsSync(pathName)) 
+    return 'Invalid path';
+  
+  _pathName = pathName;
+  return null;
+}
+
 app.get('/api/files', (req, res) => {
-  getPathContent(_pathName).then((pathContent) => {
+  // use current pathName
+  
+  
+  // (getPathContent(goPath))
+  // .then(send the data)
+  // .catch(send 422)
+
+  const err = setPath(_pathName);
+  if (err) {
+    res.status(422).json({ message: `${err}`});
+    return;
+  }
+
+  getPathContent(_pathName)
+  .then((pathContent) => {
     const metadata = { total_count: pathContent.length };
     res.json({ _metadata: metadata, records: pathContent, path: _pathName });
-  }, (err) => {
-    res.status(422).json({ message: `${err}`  });
+  })
+  .catch((err) => {
+    res.status(422).json({ message: `${err}` });
   });
 });
 
@@ -51,12 +74,13 @@ app.post('/api/keyword', (req, res) => {
 
 app.post('/api/path', (req, res) => {
   const newPath = req.body.path;
-  getPathContent(newPath).then((pathContent) => {
+  // validate the newPath
+  getPathContent(newPath)
+  .then((pathContent) => {
     res.json(pathContent);
-  }, (err) => {
-    res.status(422).json({
-      message: `${err}`
-    });
+  })
+  .catch((err) => {
+    res.status(422).json({ message: `${err}` });
   })
 });
 
@@ -64,11 +88,58 @@ app.listen(3000, function () {
   console.log('App started on port 3000');
 });
 
-// async function getPathContent(path, pathContent = []) {
+
+async function getPathContent(pathName) {
+  let pathContent = [];
+
+  // get files
+  const files = await readdir(pathName)
+  const absPath = path.resolve(pathName);
+
+  // iterate each file
+  for (let file of files) {
+    // get file info and store in pathContent
+    try {
+      let fileStat = await stat(absPath + '/' + file)
+      if (fileStat.isFile()) {
+        if (file.charAt(0) != '.') {
+          pathContent.push({
+            path: absPath,
+            fullName: file,
+            name: file.substring(0, file.lastIndexOf('.')),
+            type: file.substring(file.lastIndexOf('.') + 1).toUpperCase().concat(' File'),
+            size: Math.ceil(fileStat.size/1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB',
+          })
+        }
+      } else if (fileStat.isDirectory()) {
+        if (file.charAt(0) != '.') {
+          pathContent.push({
+            path: absPath,
+            fullName: file,
+            name: file,
+            type: 'Directory',
+            size: '--',
+          });
+          const subPathContent = await getPathContent(path.join(pathName, file));
+          pathContent = pathContent.concat(subPathContent);
+        }
+        // pathContent.push(getPathContent(path.join(pathName, file), pathContent));
+        // console.log(path.join(pathName, file));
+      }
+    } catch (err) {
+      console.log(`${err}`);
+    }
+  }
+  return pathContent;
+}
+
+// async function getPathContent(newPath, pathContent = []) {
 //   // const pathContent = [];
 
 //   // get files
 //   const files = await readdir(newPath)
+//   _pathName = newPath;
+//   pathContent.length = 0;
 //   const absPath = path.resolve(_pathName);
 
 //   // iterate each file
@@ -105,47 +176,3 @@ app.listen(3000, function () {
 //   }
 //   return pathContent;
 // }
-
-async function getPathContent(newPath, pathContent = []) {
-  // const pathContent = [];
-
-  // get files
-  const files = await readdir(newPath)
-  _pathName = newPath;
-  pathContent.length = 0;
-  const absPath = path.resolve(_pathName);
-
-  // iterate each file
-  for (let file of files) {
-    // get file info and store in pathContent
-    try {
-      let fileStat = await stat(absPath + '/' + file)
-      if (fileStat.isFile()) {
-        if (file.charAt(0) != '.') {
-          pathContent.push({
-            path: _pathName,
-            fullName: file,
-            name: file.substring(0, file.lastIndexOf('.')),
-            type: file.substring(file.lastIndexOf('.') + 1).toUpperCase().concat(' File'),
-            size: Math.ceil(fileStat.size/1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB',
-          })
-        }
-      } else if (fileStat.isDirectory()) {
-        if (file.charAt(0) != '.') {
-          pathContent.push({
-            path: _pathName,
-            fullName: file,
-            name: file,
-            type: 'Directory',
-            size: '--',
-          });
-        }
-        // pathContent.push(getPathContent(path.join(pathName, file), pathContent));
-        // console.log(path.join(pathName, file));
-      }
-    } catch (err) {
-      console.log(`${err}`);
-    }
-  }
-  return pathContent;
-}

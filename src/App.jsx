@@ -49,10 +49,11 @@ const FileTable = (props) => {
     return (
         <div>
             <p>
-                <b>Content Display: </b>Files in {props.path}<br></br>
+                <b>Content Display:</b><br></br>
+                Table lists all files in the following path: {props.path}<br></br>
                 <small>
-                    NOTE: Current working directory content should be displayed at the start of server. 
-                    Hidden files are not handled.
+                    Note: Hidden files/directories are ignored.<br/>
+                    Note: Current working directory content should be displayed at the start of the server. 
                 </small>
             </p>
             <table className="bordered-table">
@@ -113,14 +114,24 @@ class FileOrganizer extends React.Component {
     }
 
     loadData() {
-        fetch('/api/files').then(response =>
-            response.json()
-        ).then(data => {
-            console.log('loading data');
-            this.setState({ files: data.records });
-            this.setState({ path: data.path });
-        }).catch(err => {
-            console.log(err);
+        fetch('/api/files')
+        .then(response => {
+            if (response.ok) {
+                response.json()
+                .then(data => {
+                    // console.log('loading data');
+                    this.setState({ files: data.records });
+                    this.setState({ path: data.path });
+                })
+            } else {
+                response.json()
+                .then(err => {
+                    alert("Failed to load data:\n" + err.message);
+                });
+            }
+        })
+        .catch(err => {
+            alert("Error in fetching data from server:\n" + err.message);
         });
     }
     
@@ -130,19 +141,23 @@ class FileOrganizer extends React.Component {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newPath),
-        }).then(response => {
+        })
+        .then(response => {
             if (response.ok) {
-                response.json().then(newFiles => {
+                response.json()
+                .then(newFiles => {
                     this.setState({ path: newPath.path });
                     this.setState({ files: newFiles });
                 });
             } else {
-                response.json().then(err => {
-                    alert("Failed to set path: \n" + err.message)
+                response.json()
+                .then(err => {
+                    alert("Failed to set path:\n" + err.message)
                 });
             }
-        }).catch(err => {
-            alert("Error in sending data to server: " + err.message);
+        })
+        .catch(err => {
+            alert("Error in sending data to server:\n" + err.message);
         });
     }
 

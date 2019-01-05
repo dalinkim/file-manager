@@ -112,15 +112,18 @@ var FileTable = function FileTable(props) {
             React.createElement(
                 'b',
                 null,
-                'Content Display: '
+                'Content Display:'
             ),
-            'Files in ',
+            React.createElement('br', null),
+            'Table lists all files in the following path: ',
             props.path,
             React.createElement('br', null),
             React.createElement(
                 'small',
                 null,
-                'NOTE: Current working directory content should be displayed at the start of server. Hidden files are not handled.'
+                'Note: Hidden files/directories are ignored.',
+                React.createElement('br', null),
+                'Note: Current working directory content should be displayed at the start of the server.'
             )
         ),
         React.createElement(
@@ -246,13 +249,19 @@ var FileOrganizer = function (_React$Component3) {
             var _this4 = this;
 
             fetch('/api/files').then(function (response) {
-                return response.json();
-            }).then(function (data) {
-                console.log('loading data');
-                _this4.setState({ files: data.records });
-                _this4.setState({ path: data.path });
+                if (response.ok) {
+                    response.json().then(function (data) {
+                        // console.log('loading data');
+                        _this4.setState({ files: data.records });
+                        _this4.setState({ path: data.path });
+                    });
+                } else {
+                    response.json().then(function (err) {
+                        alert("Failed to load data:\n" + err.message);
+                    });
+                }
             }).catch(function (err) {
-                console.log(err);
+                alert("Error in fetching data from server:\n" + err.message);
             });
         }
     }, {
@@ -273,11 +282,11 @@ var FileOrganizer = function (_React$Component3) {
                     });
                 } else {
                     response.json().then(function (err) {
-                        alert("Failed to set path: \n" + err.message);
+                        alert("Failed to set path:\n" + err.message);
                     });
                 }
             }).catch(function (err) {
-                alert("Error in sending data to server: " + err.message);
+                alert("Error in sending data to server:\n" + err.message);
             });
         }
     }, {
