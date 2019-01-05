@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -23,24 +23,41 @@ var FileSort = function (_React$Component) {
     }
 
     _createClass(FileSort, [{
-        key: "handleSubmit",
+        key: 'handleSubmit',
         value: function handleSubmit(e) {
             e.preventDefault();
+            var form = document.forms.keyword;
+            this.props.setKeyword({
+                keyword: form.keyword.value
+            });
+            form.keyword.value = '';
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "div",
+                'div',
                 null,
                 React.createElement(
-                    "form",
-                    { name: "keyword", onSubmit: this.handleSubmit },
-                    React.createElement("input", { type: "text", name: "keyword", placeholder: "Keyword to sort" }),
+                    'p',
+                    null,
                     React.createElement(
-                        "button",
+                        'b',
                         null,
-                        "Submit"
+                        'Folder Organization: '
+                    ),
+                    React.createElement('br', null),
+                    'Enter a keyword to create a new directory and put files matching the keyword.',
+                    React.createElement('br', null)
+                ),
+                React.createElement(
+                    'form',
+                    { name: 'keyword', onSubmit: this.handleSubmit },
+                    React.createElement('input', { type: 'text', name: 'keyword', placeholder: 'Keyword to sort' }),
+                    React.createElement(
+                        'button',
+                        null,
+                        'Submit'
                     )
                 )
             );
@@ -50,54 +67,31 @@ var FileSort = function (_React$Component) {
     return FileSort;
 }(React.Component);
 
-var DirContent = function (_React$Component2) {
-    _inherits(DirContent, _React$Component2);
-
-    function DirContent() {
-        _classCallCheck(this, DirContent);
-
-        return _possibleConstructorReturn(this, (DirContent.__proto__ || Object.getPrototypeOf(DirContent)).apply(this, arguments));
-    }
-
-    _createClass(DirContent, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                null,
-                "placeholder for directory content"
-            );
-        }
-    }]);
-
-    return DirContent;
-}(React.Component);
-
 // stateless component rewritten as a function rather than a class
 
 
 var FileRow = function FileRow(props) {
     return React.createElement(
-        "tr",
+        'tr',
         null,
         React.createElement(
-            "td",
+            'td',
             null,
             props.file.path
         ),
         React.createElement(
-            "td",
+            'td',
             null,
             props.file.name
         ),
         React.createElement(
-            "td",
+            'td',
             null,
             props.file.type
         ),
         React.createElement(
-            "td",
-            null,
+            'td',
+            { style: { textAlign: 'right' } },
             props.file.size
         )
     );
@@ -110,52 +104,58 @@ var FileTable = function FileTable(props) {
         return React.createElement(FileRow, { key: file.fullName, file: file });
     });
     return React.createElement(
-        "div",
+        'div',
         null,
         React.createElement(
-            "p",
+            'p',
             null,
             React.createElement(
-                "b",
+                'b',
                 null,
-                "Contents Display: "
+                'Content Display: '
             ),
-            "Files in ",
-            props.path
+            'Files in ',
+            props.path,
+            React.createElement('br', null),
+            React.createElement(
+                'small',
+                null,
+                'NOTE: Current working directory content should be displayed at the start of server. Hidden files are not handled.'
+            )
         ),
         React.createElement(
-            "table",
-            { className: "bordered-table" },
+            'table',
+            { className: 'bordered-table' },
             React.createElement(
-                "thead",
+                'thead',
                 null,
                 React.createElement(
-                    "tr",
+                    'tr',
                     null,
                     React.createElement(
-                        "th",
+                        'th',
                         null,
-                        "Path"
+                        'Path'
                     ),
                     React.createElement(
-                        "th",
+                        'th',
                         null,
-                        "Name"
+                        'Name'
                     ),
                     React.createElement(
-                        "th",
+                        'th',
                         null,
-                        "Type"
+                        'Type'
                     ),
                     React.createElement(
-                        "th",
+                        'th',
                         null,
-                        "Size"
+                        'Size'
                     )
                 )
             ),
             React.createElement(
-                "tbody",
+                'tbody',
                 null,
                 fileRows
             )
@@ -163,20 +163,20 @@ var FileTable = function FileTable(props) {
     );
 };
 
-var FilePath = function (_React$Component3) {
-    _inherits(FilePath, _React$Component3);
+var FilePath = function (_React$Component2) {
+    _inherits(FilePath, _React$Component2);
 
     function FilePath() {
         _classCallCheck(this, FilePath);
 
-        var _this3 = _possibleConstructorReturn(this, (FilePath.__proto__ || Object.getPrototypeOf(FilePath)).call(this));
+        var _this2 = _possibleConstructorReturn(this, (FilePath.__proto__ || Object.getPrototypeOf(FilePath)).call(this));
 
-        _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
-        return _this3;
+        _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
+        return _this2;
     }
 
     _createClass(FilePath, [{
-        key: "handleSubmit",
+        key: 'handleSubmit',
         value: function handleSubmit(e) {
             e.preventDefault();
             var form = document.forms.pathSet;
@@ -187,32 +187,31 @@ var FilePath = function (_React$Component3) {
             form.url.value = '';
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "div",
+                'div',
                 null,
                 React.createElement(
-                    "p",
+                    'p',
                     null,
                     React.createElement(
-                        "b",
+                        'b',
                         null,
-                        "Directory Lookup: "
+                        'Directory Lookup: '
                     ),
-                    React.createElement("br", null),
-                    "Enter an absolute or a relative directory path to display all files.",
-                    React.createElement("br", null),
-                    "By default your current working directory is displayed."
+                    React.createElement('br', null),
+                    'Enter an absolute or a relative directory path to display all files.',
+                    React.createElement('br', null)
                 ),
                 React.createElement(
-                    "form",
-                    { name: "pathSet", onSubmit: this.handleSubmit },
-                    React.createElement("input", { type: "text", name: "url", placeholder: "Enter url" }),
+                    'form',
+                    { name: 'pathSet', onSubmit: this.handleSubmit },
+                    React.createElement('input', { type: 'text', name: 'url', placeholder: 'Enter path' }),
                     React.createElement(
-                        "button",
+                        'button',
                         null,
-                        "Submit"
+                        'Submit'
                     )
                 )
             );
@@ -222,57 +221,59 @@ var FilePath = function (_React$Component3) {
     return FilePath;
 }(React.Component);
 
-var FileOrganizer = function (_React$Component4) {
-    _inherits(FileOrganizer, _React$Component4);
+var FileOrganizer = function (_React$Component3) {
+    _inherits(FileOrganizer, _React$Component3);
 
     function FileOrganizer() {
         _classCallCheck(this, FileOrganizer);
 
-        var _this4 = _possibleConstructorReturn(this, (FileOrganizer.__proto__ || Object.getPrototypeOf(FileOrganizer)).call(this));
+        var _this3 = _possibleConstructorReturn(this, (FileOrganizer.__proto__ || Object.getPrototypeOf(FileOrganizer)).call(this));
 
-        _this4.state = { files: [], keyword: '', path: './' };
-        _this4.setPath = _this4.setPath.bind(_this4);
-        return _this4;
+        _this3.state = { files: [], keyword: '', path: '' };
+        _this3.setPath = _this3.setPath.bind(_this3);
+        _this3.setKeyword = _this3.setKeyword.bind(_this3);
+        return _this3;
     }
 
     _createClass(FileOrganizer, [{
-        key: "componentDidMount",
+        key: 'componentDidMount',
         value: function componentDidMount() {
             this.loadData();
         }
     }, {
-        key: "loadData",
+        key: 'loadData',
         value: function loadData() {
-            var _this5 = this;
+            var _this4 = this;
 
             fetch('/api/files').then(function (response) {
                 return response.json();
             }).then(function (data) {
                 console.log('loading data');
-                _this5.setState({ files: data.records });
+                _this4.setState({ files: data.records });
+                _this4.setState({ path: data.path });
             }).catch(function (err) {
                 console.log(err);
             });
         }
     }, {
-        key: "setPath",
+        key: 'setPath',
         value: function setPath(newPath) {
-            var _this6 = this;
+            var _this5 = this;
 
             // console.log(newPath);
-            fetch('/api/files', {
+            fetch('/api/path', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPath)
             }).then(function (response) {
                 if (response.ok) {
                     response.json().then(function (newFiles) {
-                        _this6.setState({ path: newPath.path });
-                        _this6.setState({ files: newFiles });
+                        _this5.setState({ path: newPath.path });
+                        _this5.setState({ files: newFiles });
                     });
                 } else {
-                    response.json().then(function (error) {
-                        alert("Failed to set path: \n" + error.message);
+                    response.json().then(function (err) {
+                        alert("Failed to set path: \n" + err.message);
                     });
                 }
             }).catch(function (err) {
@@ -280,16 +281,41 @@ var FileOrganizer = function (_React$Component4) {
             });
         }
     }, {
-        key: "render",
+        key: 'setKeyword',
+        value: function setKeyword(newKeyword) {
+            var _this6 = this;
+
+            fetch('/api/keyword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newKeyword)
+            }).then(function (response) {
+                if (response.ok) {
+                    response.json().then(function (newFiles) {
+                        _this6.setState({ keyword: newKeyword.keyword });
+                        _this6.setState({ files: newFiles });
+                    });
+                } else {
+                    response.json().then(function (err) {
+                        alert("Failed to sort by keyword: \n" + err.message);
+                    });
+                }
+            }).catch(function (err) {
+                alert("Error in sending data to server: " + err.message);
+            });
+        }
+    }, {
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "div",
+                'div',
                 null,
-                React.createElement("hr", null),
+                React.createElement('hr', null),
                 React.createElement(FilePath, { setPath: this.setPath }),
-                React.createElement("hr", null),
-                React.createElement(FileTable, { files: this.state.files, path: this.state.path }),
-                React.createElement("hr", null)
+                React.createElement('hr', null),
+                React.createElement(FileSort, { setKeyword: this.setKeyword }),
+                React.createElement('hr', null),
+                React.createElement(FileTable, { files: this.state.files, path: this.state.path })
             );
         }
     }]);

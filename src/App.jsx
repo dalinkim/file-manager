@@ -8,25 +8,25 @@ class FileSort extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault();
-
+        let form = document.forms.keyword;
+        this.props.setKeyword({
+            keyword: form.keyword.value,
+        })
+        form.keyword.value = '';
     }
 
     render() {
         return (
             <div>
+                <p>
+                    <b>Folder Organization: </b><br></br>
+                    Enter a keyword to create a new directory and put files matching the keyword.<br></br>
+                </p>
                 <form name="keyword" onSubmit={this.handleSubmit}>
                     <input type="text" name="keyword" placeholder="Keyword to sort"/>
                     <button>Submit</button>
                 </form>
             </div>
-        );
-    }
-}
-
-class DirContent extends React.Component {
-    render() {
-        return (
-            <div>placeholder for directory content</div>
         );
     }
 }
@@ -37,7 +37,7 @@ const FileRow = (props) => (
         <td>{props.file.path}</td>
         <td>{props.file.name}</td>
         <td>{props.file.type}</td>
-        <td>{props.file.size}</td>
+        <td style={{ textAlign: 'right' }}>{props.file.size}</td>
     </tr>
 );
 
@@ -49,7 +49,11 @@ const FileTable = (props) => {
     return (
         <div>
             <p>
-                <b>Contents Display: </b>Files in {props.path}
+                <b>Content Display: </b>Files in {props.path}<br></br>
+                <small>
+                    NOTE: Current working directory content should be displayed at the start of server. 
+                    Hidden files are not handled.
+                </small>
             </p>
             <table className="bordered-table">
                 <thead>
@@ -73,7 +77,7 @@ class FilePath extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        var form = document.forms.pathSet;
+        let form = document.forms.pathSet;
         // console.log(typeof form.url.value);
         this.props.setPath({
             path: form.url.value,
@@ -86,10 +90,9 @@ class FilePath extends React.Component {
                 <p>
                     <b>Directory Lookup: </b><br></br>
                     Enter an absolute or a relative directory path to display all files.<br></br>
-                    By default your current working directory is displayed.
                 </p>
                 <form name="pathSet" onSubmit={this.handleSubmit}>
-                    <input type="text" name="url" placeholder="Enter url"/>
+                    <input type="text" name="url" placeholder="Enter path"/>
                     <button>Submit</button>
                 </form>
             </div>
@@ -100,8 +103,9 @@ class FilePath extends React.Component {
 class FileOrganizer extends React.Component {
     constructor() {
         super();
-        this.state = { files: [], keyword: '', path: './' };
+        this.state = { files: [], keyword: '', path: '' };
         this.setPath = this.setPath.bind(this);
+        this.setKeyword = this.setKeyword.bind(this);
     }
 
     componentDidMount() {
@@ -114,6 +118,7 @@ class FileOrganizer extends React.Component {
         ).then(data => {
             console.log('loading data');
             this.setState({ files: data.records });
+            this.setState({ path: data.path });
         }).catch(err => {
             console.log(err);
         });
@@ -121,7 +126,7 @@ class FileOrganizer extends React.Component {
     
     setPath(newPath) {
         // console.log(newPath);
-        fetch('/api/files', {
+        fetch('/api/path', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newPath),
@@ -130,10 +135,31 @@ class FileOrganizer extends React.Component {
                 response.json().then(newFiles => {
                     this.setState({ path: newPath.path });
                     this.setState({ files: newFiles });
-                })
+                });
             } else {
-                response.json().then(error => {
-                    alert("Failed to set path: \n" + error.message)
+                response.json().then(err => {
+                    alert("Failed to set path: \n" + err.message)
+                });
+            }
+        }).catch(err => {
+            alert("Error in sending data to server: " + err.message);
+        });
+    }
+
+    setKeyword(newKeyword) {
+        fetch('/api/keyword', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newKeyword),
+        }).then(response => {
+            if (response.ok) {
+                response.json().then(newFiles => {
+                    this.setState({ keyword: newKeyword.keyword });
+                    this.setState({ files: newFiles });
+                });
+            } else {
+                response.json().then(err => {
+                    alert("Failed to sort by keyword: \n" + err.message)
                 });
             }
         }).catch(err => {
@@ -147,9 +173,9 @@ class FileOrganizer extends React.Component {
                 <hr/>
                 <FilePath setPath={this.setPath}/>
                 <hr/>
-                <FileTable files={this.state.files} path={this.state.path}/>
+                <FileSort setKeyword={this.setKeyword}/>
                 <hr/>
-                {/* <FileSort /> */}
+                <FileTable files={this.state.files} path={this.state.path}/>
             </div>
         )
     }
