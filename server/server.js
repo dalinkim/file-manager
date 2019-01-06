@@ -51,19 +51,18 @@ app.post('/api/keyword', (req, res) => {
   .then((files) => {
     let filesToMove = files.filter(file => file != '');
     console.log(filesToMove);
-    return Promise.all(filesToMove.map(oldName => rename(oldName, path.join(oldName.substring(0, oldName.lastIndexOf('/')), keyword, oldName.substring(oldName.lastIndexOf('/'))))));
+    return Promise.all(filesToMove.map(oldName => rename(oldName, path.join(_pathName, keyword, oldName.substring(oldName.lastIndexOf('/'))))));
   })
-  .catch((err) => {
-    res.status(422).json({ message: `${err}` });
-  })
-
-  getPathContent(_pathName)
+  .then(() => getPathContent(_pathName))
   .then((pathContent) => {
+    console.log(pathContent);
     res.json(pathContent);
   })
   .catch((err) => {
     res.status(422).json({ message: `${err}` });
   })
+
+  
 });
 
 app.post('/api/path', (req, res) => {
@@ -143,5 +142,6 @@ async function getPathContent(pathName) {
       console.log(`${err}`);
     }
   }
+  // console.log(pathContent.length);
   return pathContent;
 }
