@@ -44,10 +44,10 @@ var FileSort = function (_React$Component) {
                     React.createElement(
                         'b',
                         null,
-                        'Folder Organization: '
+                        'Organize by Keyword(s):'
                     ),
                     React.createElement('br', null),
-                    'Enter a keyword to create a new directory and put files matching the keyword.',
+                    'Enter a keyword to create a new directory and move the files that contain the keyword inside.',
                     React.createElement('br', null)
                 ),
                 React.createElement(
@@ -112,7 +112,7 @@ var FileTable = function FileTable(props) {
             React.createElement(
                 'b',
                 null,
-                'Content Display:'
+                'Display Content:'
             ),
             React.createElement('br', null),
             'Table lists all files in the following path: ',
@@ -201,10 +201,10 @@ var FilePath = function (_React$Component2) {
                     React.createElement(
                         'b',
                         null,
-                        'Directory Lookup: '
+                        'Look Up Directory: '
                     ),
                     React.createElement('br', null),
-                    'Enter an absolute or a relative directory path to display all files.',
+                    'Enter an absolute or a relative directory path to display all the files inside.',
                     React.createElement('br', null)
                 ),
                 React.createElement(

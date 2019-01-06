@@ -19,8 +19,8 @@ class FileSort extends React.Component {
         return (
             <div>
                 <p>
-                    <b>Folder Organization: </b><br></br>
-                    Enter a keyword to create a new directory and put files matching the keyword.<br></br>
+                    <b>Organize by Keyword(s):</b><br></br>
+                    Enter a keyword to create a new directory and move the files that contain the keyword inside.<br></br>
                 </p>
                 <form name="keyword" onSubmit={this.handleSubmit}>
                     <input type="text" name="keyword" placeholder="Keyword to sort"/>
@@ -49,7 +49,7 @@ const FileTable = (props) => {
     return (
         <div>
             <p>
-                <b>Content Display:</b><br></br>
+                <b>Display Content:</b><br></br>
                 Table lists all files in the following path: {props.path}<br></br>
                 <small>
                     Note: Hidden files/directories are ignored.<br/>
@@ -89,8 +89,8 @@ class FilePath extends React.Component {
         return (
             <div>
                 <p>
-                    <b>Directory Lookup: </b><br></br>
-                    Enter an absolute or a relative directory path to display all files.<br></br>
+                    <b>Look Up Directory: </b><br></br>
+                    Enter an absolute or a relative directory path to display all the files inside.<br></br>
                 </p>
                 <form name="pathSet" onSubmit={this.handleSubmit}>
                     <input type="text" name="url" placeholder="Enter path"/>

@@ -4,7 +4,7 @@
   "description": "organizes files in a directory structure",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon -w server.js server.js",
+    "start": "nodemon -w server.js server/server.js",
     "compile": "babel src --presets react,es2015 --out-dir static",
     "watch": "babel src --presets react,es2015 --out-dir static --watch",
     "test": "echo \"Error: no test specified\" && exit 1"

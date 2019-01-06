@@ -1,6 +1,8 @@
 var textract = require('textract');
 var path = './files/PNG1.png';
+var fs = require('fs')
 
+// fs.rename('/Users/dalinkim/vbc-workspace/CS790/file-organizer/files/Text2.txt'')
 
 // txt - textract.fromFileWithPath(path, (error, text) => {
 // docx - textract.fromFileWithPath(path, (error, text) => {
@@ -12,11 +14,11 @@ var path = './files/PNG1.png';
 // doc - no
 // ppt - no
 
-textract.fromFileWithPath(path, (error, text) => {
+// textract.fromFileWithPath(path, (error, text) => {
     
-    console.log(text);
-    console.log(typeof text);
-});
+//     console.log(text);
+//     console.log(typeof text);
+// });
 
 
 // textract.fromFileWithMimeAndPath('application/msword', path, (error, text) => {
