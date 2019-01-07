@@ -1,147 +1,96 @@
+'use strict';
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
 const rename = promisify(fs.rename);
-const keywordHandler = require('./keywordHandler.js')
+const copy = promisify(fs.copyFile);
+const textractHandler = require('./textractHandler.js');
+const contentHandler = require('./contentHandler.js');
 
 const app = express();
 app.use(express.static('static'));
 app.use(bodyParser.json());
 
-var _pathName = './files';
-// var pathContent = [];
-var _keyword = '';
-
+// GET
 app.get('/api/files', (req, res) => {
-  const err = setPath(_pathName);
-  if (err) {
-    res.status(422).json({ message: `${err}`});
-    return;
-  }
+    const defaultDirPath = path.resolve('./_test');
 
-  getPathContent(_pathName)
-  .then((pathContent) => {
-    const metadata = { total_count: pathContent.length };
-    res.json({ _metadata: metadata, records: pathContent, path: _pathName });
-  })
-  .catch((err) => {
-    res.status(422).json({ message: `${err}` });
-  });
+    contentHandler.getDirContent(defaultDirPath)
+        .then((dirContent) => {
+            const metadata = { total_count: dirContent.length };
+            res.json({
+                _metadata: metadata,
+                records: dirContent,
+                dirPath: defaultDirPath
+            });
+        })
+        .catch((err) => {
+            res.status(422).json({
+                message: `${err}`
+            });
+        });
 });
 
-app.post('/api/keyword', (req, res) => {
-  const keyword = req.body.keyword;
-
-  // create a directory named keyword
-  let absPath = path.join(path.resolve(_pathName), keyword);
-  if (!fs.existsSync(absPath)) {
-    fs.mkdirSync(absPath);
-  }
-
-  getPathContent(_pathName)
-  .then((pathContent) => {
-    let filesToTextract = keywordHandler.getFilesToTextract(pathContent);
-    return Promise.all(filesToTextract.map(file => 
-      keywordHandler.textractFile(file, keyword)));
-  })
-  .then((files) => {
-    let filesToMove = files.filter(file => file != '');
-    console.log(filesToMove);
-    return Promise.all(filesToMove.map(oldName => rename(oldName, path.join(_pathName, keyword, oldName.substring(oldName.lastIndexOf('/'))))));
-  })
-  .then(() => getPathContent(_pathName))
-  .then((pathContent) => {
-    console.log(pathContent);
-    res.json(pathContent);
-  })
-  .catch((err) => {
-    res.status(422).json({ message: `${err}` });
-  })
-
-  
-});
-
+// POST - set new path for content review
 app.post('/api/path', (req, res) => {
-  const newPath = req.body.path;
-  const err = setPath(newPath);
-  if (err) {
-    res.status(422).json({ message: `${err}`});
-    return;
-  }
+    const newDirPath = path.resolve(req.body.dirPath);
 
-  getPathContent(newPath)
-  .then((pathContent) => {
-    res.json(pathContent);
-  })
-  .catch((err) => {
-    res.status(422).json({ message: `${err}` });
-  })
+    
+    contentHandler.getDirContent(newDirPath)
+        .then((dirContent) => {
+            res.json(dirContent);
+        })
+        .catch((err) => {
+            res.status(422).json({
+                message: `${err}`
+            });
+        })
+});
+
+// POST - set new keywords for organization
+app.post('/api/keyword', (req, res) => {
+    const keyword = req.body.keyword;
+    const currentDirPath = path.resolve(req.body.dirPath);
+    const newKeywordPath = path.join(currentDirPath, keyword);
+
+    if (!fs.existsSync(newKeywordPath)) {
+        fs.mkdirSync(newKeywordPath); // will throw an error if file already exists so check with existsSync
+    }
+
+    contentHandler.getDirContent(currentDirPath) // get current content
+        .then((dirContent) => { // textract textractable files
+            let filesToTextract = textractHandler.getFilesToTextract(dirContent);
+            return Promise.all(filesToTextract.map(file =>
+                textractHandler.textractFile(file, keyword)));
+        })
+        .then((files) => { // move or copy files
+            let filesToMove = files.filter(file => file != '');
+            return Promise.all(filesToMove.map(oldFilePath => {
+                let fileName = oldFilePath.substring(oldFilePath.lastIndexOf('/'));
+                let fileParentPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
+                let newFilePath = path.join(currentDirPath, keyword, fileName);
+                if (fileParentPath === currentDirPath)
+                    rename(oldFilePath, newFilePath);
+                else
+                    copy(oldFilePath, newFilePath);
+            }));
+        })
+        .then(() => // get updated content
+            contentHandler.getDirContent(currentDirPath)
+        )
+        .then((dirContent) => {
+            res.json(dirContent);
+        })
+        .catch((err) => {
+            res.status(422).json({
+                message: `${err}`
+            });
+        })
 });
 
 app.listen(3000, function () {
-  console.log('App started on port 3000');
+    console.log('App started on port 3000');
 });
-
-function setPath(pathName) {
-  if (!fs.existsSync(pathName)) 
-    return 'Invalid path';
-  
-  _pathName = pathName;
-  return null;
-}
-
-async function getPathContent(pathName) {
-  let pathContent = [];
-
-  // get files
-  const files = await readdir(pathName);
-  const absDirPath = path.resolve(pathName);
-
-  // iterate each file
-  for (let file of files) {
-    // get file info and store in pathContent
-    const absFilePath = path.resolve(absDirPath, file);
-    try {
-      let fileStat = await stat(absFilePath);
-      if (fileStat.isFile()) {
-        const fileExt = file.substring(file.lastIndexOf('.') + 1);
-        if (file.charAt(0) != '.') {
-          pathContent.push({
-            path: absDirPath,
-            fullName: absFilePath,
-            name: file.substring(0, file.lastIndexOf('.')),
-            type: fileExt.toUpperCase().concat(' File'),
-            size: Math.ceil(fileStat.size/1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB',
-          })
-        }
-        // if (fileExt == 'txt' || fileExt == 'docx' || fileExt == 'pptx' || fileExt == 'pdf' || fileExt == 'jpg' || fileExt == 'png') {
-        //   var result = await textractFile(absFilePath);
-        //   console.log(file);
-        //   console.log(result);
-        // }
-      } else if (fileStat.isDirectory()) {
-        if (file.charAt(0) != '.') {
-          pathContent.push({
-            path: absDirPath,
-            fullName: absFilePath,
-            name: file,
-            type: 'Directory',
-            size: '--',
-          });
-          const subPathContent = await getPathContent(path.join(pathName, file));
-          pathContent = pathContent.concat(subPathContent);
-        }
-        // pathContent.push(getPathContent(path.join(pathName, file), pathContent));
-        // console.log(path.join(pathName, file));
-      }
-    } catch (err) {
-      console.log(`${err}`);
-    }
-  }
-  // console.log(pathContent.length);
-  return pathContent;
-}
