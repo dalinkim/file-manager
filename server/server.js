@@ -7,6 +7,8 @@ const path = require('path');
 const { promisify } = require('util');
 const rename = promisify(fs.rename);
 const copy = promisify(fs.copyFile);
+const unlink = promisify(fs.unlink);
+const writeFile = promisify(fs.writeFile);
 const textractHandler = require('./textractHandler.js');
 const contentHandler = require('./contentHandler.js');
 
@@ -53,10 +55,12 @@ app.post('/api/path', (req, res) => {
         })
 });
 
-// POST - set new keywords for organization
+// POST - organize files based on keywords
 app.post('/api/keywords', (req, res) => {
     const keywords = req.body.keywords; // array of keywords
     const currentDirPath = path.resolve(req.body.dirPath);
+
+    let _fileObjs; // array of file objects that are textractable
 
     contentHandler.getDirContent(currentDirPath) // get current content
         .then((dirContent) => {
@@ -66,6 +70,16 @@ app.post('/api/keywords', (req, res) => {
                 textractHandler.textractFile(fileObj, keywords)));
         })
         .then((fileObjs) => {
+            _fileObjs = fileObjs;
+            if (!fs.existsSync(path.join(currentDirPath, 'textracted'))) {
+                fs.mkdirSync(path.join(currentDirPath, 'textracted'));
+            }
+            return Promise.all(fileObjs.map(fileObj =>
+                writeFile(path.join(currentDirPath, 'textracted', fileObj.fileName + '.txt'),
+                    `Matched keywords: [${fileObj.matchedKeywords}]\n\n${fileObj.text}`
+                )));
+        })
+        .then(() => {
             // create folders for each keyword
             keywords.forEach(keyword => {
                 let newKeywordPath = path.join(currentDirPath, keyword);
@@ -76,20 +90,21 @@ app.post('/api/keywords', (req, res) => {
             });
 
             // only copies files for now as moving loses track of original locations of files
-            return Promise.all(fileObjs.filter(fileObj => fileObj.matchedKeywords.length != 0)
+            return Promise.all(_fileObjs.filter(fileObj => fileObj.matchedKeywords.length != 0)
                 .map(fileObj => {
                     fileObj.matchedKeywords.map(keyword => {
                         let newFilePath = path.join(currentDirPath, keyword, fileObj.fileName);
                         // if (fileObj.dirPath === currentDirPath)
                         //     rename(fileObj.filePath, newFilePath);
                         // else
+                        if (fileObj.dirPath !== path.join(currentDirPath, keyword))
                             copy(fileObj.filePath, newFilePath);
                     });
-                }));
+                }))
         })
-        .then(() => // get updated content
-            contentHandler.getDirContent(currentDirPath)
-        )
+        .then(() => { // get updated content 
+            return contentHandler.getDirContent(currentDirPath)
+        })
         .then((dirContent) => {
             const metadata = { total_count: dirContent.length };
             res.json({
