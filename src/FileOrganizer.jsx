@@ -22,12 +22,9 @@ const FileTable = (props) => {
     return (
         <div>
             <p>
-                <b>Display Content:</b><br></br>
-                Table lists all files in the following directory path: {props.dirPath}<br></br>
-                <small>
-                    Note: Hidden files/directories are ignored.<br/>
-                    Note: Current working directory content should be displayed at the start of the server. 
-                </small>
+                <b>Content Display:</b><br></br>
+                Table lists all files in the following directory path: <i>{props.dirPath}</i><br></br>
+                <small>Note: Hidden files/directories are ignored.<br/></small>
             </p>
             <table className="bordered-table">
                 <thead>
@@ -79,7 +76,6 @@ export default class FileOrganizer extends React.Component {
     }
     
     setPath(newPath) {
-        // console.log(newPath);
         fetch('/api/path', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

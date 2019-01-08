@@ -24,15 +24,14 @@ export default class FileSort extends React.Component {
             <div>
                 <p>
                     <b>Organize by Keyword(s):</b><br></br>
-                    Add a keyword to create a new directory and move the files that contain the keyword inside.<br></br>
-                    Multiple keywords can be added.
+                    Add a keyword to create a new directory and move the matching files. Multiple keywords can be added.<br/>
                 </p>
                 <form name="keyword" onSubmit={this.handleAdd}>
                     <input type="text" name="keyword" placeholder="Keyword to sort"/>
                     <button>Add Keyword</button>
                 </form>
                 <p>
-                    Click 'Submit' to organize!<br></br>
+                    Click 'Submit' to organize. It will take a moment to extract file contents and make necessary changes to the directory.<br></br>
                     <button onClick={this.handleSubmit}>Submit</button>
                 </p>
             </div>
