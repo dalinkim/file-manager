@@ -19,24 +19,20 @@ async function getDirContent(pathName) {
         try {
             let fileStat = await stat(absFilePath);
             if (fileStat.isFile()) {
-                if (file.charAt(0) != '.') { // ignores any hidden file
-                    // console.log(file);
+                // if (file.charAt(0) != '.') { // ignores any hidden file
+                if (!(/(^|\/)\.[^\/\.]/g).test(file)) { // ignores any hidden file
                     let fileExt = file.lastIndexOf('.') > -1 ? file.substring(file.lastIndexOf('.') + 1).toLowerCase() : '';
-                    // console.log(fileExt);
                     dirContent.push({
                         dirPath: absDirPath,
                         filePath: absFilePath,
                         fileExt: fileExt,
-                        // fileExt: '',
                         fileName: file,
                         fileType: fileExt.toLowerCase().concat(' File'),
-                        // fileType: 'File',
-                        // fileSize: Math.ceil(fileStat.size / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB',
                         fileSize: fileStat.size,
                     })
                 }
             } else if (fileStat.isDirectory()) {
-                if (file.charAt(0) != '.') { // ignores any hidden file
+                if (!(/(^|\/)\.[^\/\.]/g).test(file)) { // ignores any hidden file
                     // console.log('something here?');
                     dirContent.push({
                         dirPath: absDirPath,
