@@ -8,10 +8,10 @@ function getFilesToTextract(dirContent) {
         .filter(fileObj => {
             // fileType is all lowerCased.
             return (fileObj.fileType !== 'Directory') && 
-                    (fileObj.fileSize > 0) &&
-                    (fileObj.fileExt === 'txt' || fileObj.fileExt === 'docx' ||
-                    fileObj.fileExt === 'pptx' || fileObj.fileExt === 'pdf' ||
-                    fileObj.fileExt === 'jpg' || fileObj.fileExt === 'png');
+                    (fileObj.fileExt === 'txt' || fileObj.fileExt === 'doc' || 
+                    fileObj.fileExt === 'docx'|| fileObj.fileExt === 'pptx' || 
+                    fileObj.fileExt === 'pdf' || fileObj.fileExt === 'jpg' || 
+                    fileObj.fileExt === 'jpeg' || fileObj.fileExt === 'png');
         });
 }
 
@@ -24,13 +24,15 @@ function getFilesToTextract(dirContent) {
 function textractFile(fileObj, keywords) { // got array of keywords
     return new Promise((resolve, reject) => {
         textract.fromFileWithPath(fileObj.filePath, (err, text) => {
-            if (err) { reject(err); }
+            // if (err) { reject(err); }
 
             fileObj.matchedKeywords = [];
             keywords.forEach(keyword => {
-                if (fileObj.fileName.toLowerCase().includes(keyword) || (typeof text !== 'undefined' && text.toLowerCase().includes(keyword)))
+                if (fileObj.fileName.toLowerCase().includes(keyword) || (text != null && text.toLowerCase().includes(keyword)))
                     fileObj.matchedKeywords.push(keyword);
             })
+            fileObj.text = text;
+
             resolve(fileObj);
         });
     });
