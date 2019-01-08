@@ -1,4 +1,4 @@
-# file-manager
+# file-organizer
 
 using node v10.15.0 (npm v6.4.1)
 
