@@ -9,8 +9,12 @@ const FileRow = (props) => (
         <td>{props.file.dirPath}</td>
         <td>{props.file.fileName}</td>
         <td style={{ textAlign: 'right' }}>{props.file.fileType}</td>
-        {/* <td style={{ textAlign: 'right' }}>{props.file.fileSize}</td> */}
-        <td style={{ textAlign: 'right' }}>{Math.ceil(props.file.fileSize / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB'}</td>
+        <td style={{ textAlign: 'right' }}>
+        {
+            props.file.fileSize === '--' ? props.file.fileSize :
+            Math.ceil(props.file.fileSize / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB'
+        }
+        </td>
     </tr>
 );
 
@@ -22,8 +26,8 @@ const FileTable = (props) => {
     return (
         <div>
             <p>
-                <b>Content Display:</b><br></br>
-                Table lists all files in the following directory path: <i>{props.dirPath}</i><br></br>
+                <b>Content Display:</b><br/>
+                Table lists all files in the following directory path: <i>{props.dirPath}</i><br/>
                 <small>Note: Hidden files/directories are ignored.<br/></small>
             </p>
             <table className="bordered-table">

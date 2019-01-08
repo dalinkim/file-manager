@@ -23,7 +23,7 @@ export default class FileSort extends React.Component {
         return (
             <div>
                 <p>
-                    <b>Organize by Keyword(s):</b><br></br>
+                    <b>Organize by Keyword(s):</b><br/>
                     Add a keyword to create a new directory and move the matching files. Multiple keywords can be added.<br/>
                 </p>
                 <form name="keyword" onSubmit={this.handleAdd}>
@@ -31,7 +31,8 @@ export default class FileSort extends React.Component {
                     <button>Add Keyword</button>
                 </form>
                 <p>
-                    Click 'Submit' to organize. It will take a moment to extract file contents and make necessary changes to the directory.<br></br>
+                    Click 'Submit' to organize. It will take a moment to extract all file contents and make necessary changes to the directory.<br/>
+                    New folder named 'textracted' will also be created which contains all textracted files with details on matched keyword(s) and extracted text.<br/>
                     <button onClick={this.handleSubmit}>Submit</button>
                 </p>
             </div>

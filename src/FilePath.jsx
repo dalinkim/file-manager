@@ -17,9 +17,9 @@ export default class FilePath extends React.Component {
         return (
             <div>
                 <p>
-                    <b>Directory Lookup: </b><br></br>
-                    Enter an absolute or a relative directory path (w.r.t. current working directory) to display the directory content.<br></br>
-                    Default path is './server' when the server starts.
+                    <b>Directory Lookup: </b><br/>
+                    Enter an absolute or a relative directory path (w.r.t. current working directory) to display the directory content.<br/>
+                    Default path is './server' when the server starts or when the page is refreshed.
                 </p>
                 <form name="pathSet" onSubmit={this.handleSubmit}>
                     <input type="text" name="url" placeholder="Enter path"/>
