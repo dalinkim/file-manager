@@ -8,7 +8,6 @@ export default class FilePath extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
         let form = document.forms.pathSet;
-        // console.log(typeof form.url.value);
         this.props.setPath({
             dirPath: form.url.value,
         });
@@ -23,7 +22,7 @@ export default class FilePath extends React.Component {
                 </p>
                 <form name="pathSet" onSubmit={this.handleSubmit}>
                     <input type="text" name="url" placeholder="Enter path"/>
-                    <button>Submit</button>
+                    <button>Open Directory</button>
                 </form>
             </div>
         );

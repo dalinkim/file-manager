@@ -9,7 +9,8 @@ const FileRow = (props) => (
         <td>{props.file.dirPath}</td>
         <td>{props.file.fileName}</td>
         <td style={{ textAlign: 'right' }}>{props.file.fileType}</td>
-        <td style={{ textAlign: 'right' }}>{props.file.fileSize}</td>
+        {/* <td style={{ textAlign: 'right' }}>{props.file.fileSize}</td> */}
+        <td style={{ textAlign: 'right' }}>{Math.ceil(props.file.fileSize / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB'}</td>
     </tr>
 );
 
@@ -22,7 +23,7 @@ const FileTable = (props) => {
         <div>
             <p>
                 <b>Display Content:</b><br></br>
-                Table lists all files in the following directory path: {props.path}<br></br>
+                Table lists all files in the following directory path: {props.dirPath}<br></br>
                 <small>
                     Note: Hidden files/directories are ignored.<br/>
                     Note: Current working directory content should be displayed at the start of the server. 
@@ -46,9 +47,10 @@ const FileTable = (props) => {
 export default class FileOrganizer extends React.Component {
     constructor() {
         super();
-        this.state = { files: [], keyword: '', dirPath: '' };
+        this.state = { files: [], keywords: [], dirPath: '' };
         this.setPath = this.setPath.bind(this);
-        this.setKeyword = this.setKeyword.bind(this);
+        this.addKeyword = this.addKeyword.bind(this);
+        this.organizeByKeywords = this.organizeByKeywords.bind(this);
     }
 
     componentDidMount() {
@@ -61,7 +63,6 @@ export default class FileOrganizer extends React.Component {
             if (response.ok) {
                 response.json()
                 .then(data => {
-                    // console.log('loading data');
                     this.setState({ files: data.records });
                     this.setState({ dirPath: data.dirPath });
                 })
@@ -87,9 +88,9 @@ export default class FileOrganizer extends React.Component {
         .then(response => {
             if (response.ok) {
                 response.json()
-                .then(newFiles => {
-                    this.setState({ dirPath: newPath.dirPath });
-                    this.setState({ files: newFiles });
+                .then(data => {
+                    this.setState({ files: data.records });
+                    this.setState({ dirPath: data.dirPath });
                 });
             } else {
                 response.json()
@@ -103,25 +104,37 @@ export default class FileOrganizer extends React.Component {
         });
     }
 
-    setKeyword(newKeyword) {
-        fetch('/api/keyword', {
+    organizeByKeywords() {
+        fetch('/api/keywords', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newKeyword),
+            body: JSON.stringify({ 
+                keywords: this.state.keywords,
+                dirPath: this.state.dirPath,
+            }),
         }).then(response => {
             if (response.ok) {
-                response.json().then(newFiles => {
-                    this.setState({ keyword: newKeyword.keyword });
-                    this.setState({ files: newFiles });
+                response.json()
+                .then(data => {
+                    this.setState({ files: data.records });
+                    this.setState({ dirPath: data.dirPath });
+                    this.setState({ keywords: [] });
                 });
             } else {
-                response.json().then(err => {
-                    alert("Failed to sort by keyword: \n" + err.message)
+                response.json()
+                .then(err => {
+                    alert("Failed to sort by keywords: \n" + err.message)
                 });
             }
         }).catch(err => {
             alert("Error in sending data to server: " + err.message);
         });
+    }
+
+    addKeyword(newKeyword) {
+        let updatedKeywords = this.state.keywords.concat(newKeyword);
+        // console.log(updatedKeywords);
+        this.setState({ keywords: updatedKeywords });
     }
 
     render() {
@@ -130,7 +143,10 @@ export default class FileOrganizer extends React.Component {
                 <hr/>
                 <FilePath setPath={this.setPath}/>
                 <hr/>
-                <FileSort setKeyword={this.setKeyword} dirPath={this.state.dirPath}/>
+                <FileSort organizeByKeywords={this.organizeByKeywords} addKeyword = {this.addKeyword} />
+                <ul>
+                    {this.state.keywords.map(keyword => ( <li>{keyword}</li> ))}
+                </ul>
                 <hr/>
                 <FileTable files={this.state.files} dirPath={this.state.dirPath}/>
             </div>

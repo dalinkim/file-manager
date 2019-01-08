@@ -16,8 +16,7 @@ app.use(bodyParser.json());
 
 // GET
 app.get('/api/files', (req, res) => {
-    const defaultDirPath = path.resolve('./_test');
-
+    const defaultDirPath = path.resolve(__dirname);
     contentHandler.getDirContent(defaultDirPath)
         .then((dirContent) => {
             const metadata = { total_count: dirContent.length };
@@ -38,10 +37,14 @@ app.get('/api/files', (req, res) => {
 app.post('/api/path', (req, res) => {
     const newDirPath = path.resolve(req.body.dirPath);
 
-    
     contentHandler.getDirContent(newDirPath)
         .then((dirContent) => {
-            res.json(dirContent);
+            const metadata = { total_count: dirContent.length };
+            res.json({
+                _metadata: metadata,
+                records: dirContent,
+                dirPath: newDirPath
+            });
         })
         .catch((err) => {
             res.status(422).json({
@@ -51,38 +54,49 @@ app.post('/api/path', (req, res) => {
 });
 
 // POST - set new keywords for organization
-app.post('/api/keyword', (req, res) => {
-    const keyword = req.body.keyword;
+app.post('/api/keywords', (req, res) => {
+    const keywords = req.body.keywords; // array of keywords
     const currentDirPath = path.resolve(req.body.dirPath);
-    const newKeywordPath = path.join(currentDirPath, keyword);
-
-    if (!fs.existsSync(newKeywordPath)) {
-        fs.mkdirSync(newKeywordPath); // will throw an error if file already exists so check with existsSync
-    }
 
     contentHandler.getDirContent(currentDirPath) // get current content
-        .then((dirContent) => { // textract textractable files
-            let filesToTextract = textractHandler.getFilesToTextract(dirContent);
-            return Promise.all(filesToTextract.map(file =>
-                textractHandler.textractFile(file, keyword)));
+        .then((dirContent) => {
+            // textract textractable files
+            let fileObjsToTextract = textractHandler.getFilesToTextract(dirContent);
+            return Promise.all(fileObjsToTextract.map(fileObj =>
+                textractHandler.textractFile(fileObj, keywords)));
         })
-        .then((files) => { // move or copy files
-            let filesToMove = files.filter(file => file != '');
-            return Promise.all(filesToMove.map(oldFilePath => {
-                let fileName = oldFilePath.substring(oldFilePath.lastIndexOf('/'));
-                let fileParentPath = oldFilePath.substring(0, oldFilePath.lastIndexOf('/'));
-                let newFilePath = path.join(currentDirPath, keyword, fileName);
-                if (fileParentPath === currentDirPath)
-                    rename(oldFilePath, newFilePath);
-                else
-                    copy(oldFilePath, newFilePath);
-            }));
+        .then((fileObjs) => {
+            // create folders for each keyword
+            keywords.forEach(keyword => {
+                let newKeywordPath = path.join(currentDirPath, keyword);
+                if (!fs.existsSync(newKeywordPath)) {
+                    // will throw an error if file already exists so check with existsSync
+                    fs.mkdirSync(newKeywordPath);
+                }
+            });
+
+            // only copies files for now as moving loses track of original locations of files
+            return Promise.all(fileObjs.filter(fileObj => fileObj.matchedKeywords.length != 0)
+                .map(fileObj => {
+                    fileObj.matchedKeywords.map(keyword => {
+                        let newFilePath = path.join(currentDirPath, keyword, fileObj.fileName);
+                        // if (fileObj.dirPath === currentDirPath)
+                        //     rename(fileObj.filePath, newFilePath);
+                        // else
+                            copy(fileObj.filePath, newFilePath);
+                    });
+                }));
         })
         .then(() => // get updated content
             contentHandler.getDirContent(currentDirPath)
         )
         .then((dirContent) => {
-            res.json(dirContent);
+            const metadata = { total_count: dirContent.length };
+            res.json({
+                _metadata: metadata,
+                records: dirContent,
+                dirPath: currentDirPath
+            });
         })
         .catch((err) => {
             res.status(422).json({
