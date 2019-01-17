@@ -15,4 +15,3 @@ Using textract module, the application is able to extradt text from the followin
 
 textract is a text extraction node.js module that works with various file types.  
 See their [GitHub page](https://github.com/dbashford/textract) for more details.
-
