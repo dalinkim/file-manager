@@ -1,5 +1,6 @@
 # File Organizer v1.0
 
+## Summary
 This file organizer app was created for a course project.  
 This is a single page web application that can assists with organizing files in a given directory path.  
 
@@ -15,7 +16,8 @@ Using textract module, the application is able to extradt text from the followin
 - PDF
 - PNG
 - PPTX
-- TXT   
+- TXT  
+
 *NOTE: textract is capable of handling many more different file types.*
 
 ## Key Tech / Framework Used
@@ -28,4 +30,4 @@ Using textract module, the application is able to extradt text from the followin
 textract is a text extraction node.js module that works with various file types.  
 See their [GitHub page](https://github.com/dbashford/textract) for more details.
 
-:turtle:
+:turtle::turtle::turtle::turtle::turtle::turtle::turtle:
