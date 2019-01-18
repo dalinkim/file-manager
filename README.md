@@ -1,8 +1,8 @@
 # File Organizer v1.0
 
 ## Summary
-This file organizer app was created for a course project.  
-This is a single page web application that can assists with organizing files in a given directory path.  
+This file organizer web application was created for a course project.  
+This is a single page application that can assists with organizing files in a given directory path.  
 
 Based on the keyword(s) a user provides, 
 - new subfolder(s) (each named with a given keyword) will be created
